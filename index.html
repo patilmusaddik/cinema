@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CineStream — Search & Download</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background-color: #0f172a;
+            color: #f8fafc;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        header {
+            max-width: 1200px;
+            margin: 40px auto;
+            text-align: center;
+        }
+
+        header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            color: #38bdf8;
+            letter-spacing: -1px;
+        }
+
+        header p {
+            color: #94a3b8;
+            margin-bottom: 30px;
+        }
+
+        /* Search and Filter Controls */
+        .controls-container {
+            max-width: 700px;
+            margin: 0 auto 40px auto;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .search-wrapper {
+            position: relative;
+            display: flex;
+            width: 100%;
+        }
+
+        .search-bar {
+            width: 100%;
+            padding: 15px 20px;
+            border-radius: 12px;
+            border: 2px solid #334155;
+            background-color: #1e293b;
+            color: #fff;
+            font-size: 1rem;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        .search-bar:focus {
+            border-color: #38bdf8;
+        }
+
+        .filter-tabs {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .tab-btn {
+            background-color: #1e293b;
+            color: #94a3b8;
+            border: 1px solid #334155;
+            padding: 10px 20px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-weight: 500;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+        }
+
+        .tab-btn:hover {
+            border-color: #38bdf8;
+            color: #fff;
+        }
+
+        .tab-btn.active {
+            background-color: #38bdf8;
+            color: #0f172a;
+            border-color: #38bdf8;
+            font-weight: 600;
+        }
+
+        /* Movie Grid Layout */
+        .movie-grid {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 25px;
+            padding: 20px 0;
+        }
+
+        .movie-card {
+            background-color: #1e293b;
+            border-radius: 16px;
+            overflow: hidden;
+            border: 1px solid #334155;
+            transition: transform 0.3s styles, box-shadow 0.3s;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .movie-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+            border-color: #475569;
+        }
+
+        .movie-poster {
+            width: 100%;
+            height: 340px;
+            object-fit: cover;
+            background-color: #0f172a;
+        }
+
+        .movie-info {
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            flex-grow: 1;
+        }
+
+        .movie-title {
+            font-size: 1.15rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+            line-height: 1.4;
+        }
+
+        .movie-meta {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .badge {
+            font-size: 0.75rem;
+            padding: 4px 8px;
+            border-radius: 6px;
+            text-transform: uppercase;
+            font-weight: 600;
+        }
+
+        .badge-lang {
+            background-color: #0284c7;
+            color: #fff;
+        }
+
+        .movie-year {
+            font-size: 0.85rem;
+            color: #94a3b8;
+        }
+
+        .download-btn {
+            display: block;
+            text-align: center;
+            background-color: #10b981;
+            color: #fff;
+            padding: 12px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.95rem;
+            margin-top: auto;
+            transition: background-color 0.2s;
+        }
+
+        .download-btn:hover {
+            background-color: #059669;
+        }
+
+        .no-results {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 50px;
+            color: #64748b;
+            font-size: 1.2rem;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>CineStream</h1>
+        <p>Search and download your favorite movies seamlessly</p>
+    </header>
+
+    <div class="controls-container">
+        <div class="search-wrapper">
+            <input type="text" id="searchInput" class="search-bar" placeholder="Type movie name to search...">
+        </div>
+
+        <div class="filter-tabs">
+            <button class="tab-btn active" onclick="filterLanguage('all')">All</button>
+            <button class="tab-btn" onclick="filterLanguage('bollywood')">Bollywood</button>
+            <button class="tab-btn" onclick="filterLanguage('hindi')">Hindi Dubbed</button>
+            <button class="tab-btn" onclick="filterLanguage('marathi')">Marathi</button>
+            <button class="tab-btn" onclick="filterLanguage('other')">Other</button>
+        </div>
+    </div>
+
+    <main class="movie-grid" id="movieGrid">
+        </main>
+
+    <script>
+        // Sample Movie Database (You can add more objects to expand your list)
+        const movieDatabase = [
+            {
+                title: "Pathaan",
+                category: "bollywood",
+                year: "2023",
+                poster: "https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=400", // Placeholder image
+                downloadUrl: "#" 
+            },
+            {
+                title: "Jawan",
+                category: "bollywood",
+                year: "2023",
+                poster: "https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?w=400",
+                downloadUrl: "#"
+            },
+            {
+                title: "Sairat",
+                category: "marathi",
+                year: "2016",
+                poster: "https://images.unsplash.com/photo-1517604931442-7e0c8ed2963c?w=400",
+                downloadUrl: "#"
+            },
+            {
+                title: "Duniyadari",
+                category: "marathi",
+                year: "2013",
+                poster: "https://images.unsplash.com/photo-1440404653325-ab127d49abc1?w=400",
+                downloadUrl: "#"
+            },
+            {
+                title: "The Avengers (Hindi Dubbed)",
+                category: "hindi",
+                year: "2012",
+                poster: "https://images.unsplash.com/photo-1478720143033-6a972678aa30?w=400",
+                downloadUrl: "#"
+            },
+            {
+                title: "Interstellar",
+                category: "other",
+                year: "2014",
+                poster: "https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=400",
+                downloadUrl: "#"
+            }
+        ];
+
+        let currentCategory = 'all';
+        let searchQuery = '';
+
+        // Elements
+        const movieGrid = document.getElementById('movieGrid');
+        const searchInput = document.getElementById('searchInput');
+
+        // Init App
+        displayMovies();
+
+        // Search bar Event Listener
+        searchInput.addEventListener('input', (e) => {
+            searchQuery = e.target.value.toLowerCase().trim();
+            displayMovies();
+        });
+
+        // Filter Categories Event Function
+        function filterLanguage(category) {
+            currentCategory = category;
+            
+            // Update Active Tab Styles
+            const buttons = document.querySelectorAll('.tab-btn');
+            buttons.forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            displayMovies();
+        }
+
+        // Logic to Filter and Render UI List
+        function displayMovies() {
+            movieGrid.innerHTML = ""; // Clear current view
+
+            const filteredMovies = movieDatabase.filter(movie => {
+                const matchesCategory = (currentCategory === 'all' || movie.category === currentCategory);
+                const matchesSearch = movie.title.toLowerCase().includes(searchQuery);
+                return matchesCategory && matchesSearch;
+            });
+
+            if (filteredMovies.length === 0) {
+                movieGrid.innerHTML = `<div class="no-results">No movies found matching your criteria.</div>`;
+                return;
+            }
+
+            filteredMovies.forEach(movie => {
+                const movieCard = document.createElement('div');
+                movieCard.className = 'movie-card';
+
+                movieCard.innerHTML = `
+                    <img src="${movie.poster}" alt="${movie.title}" class="movie-poster">
+                    <div class="movie-info">
+                        <h3 class="movie-title">${movie.title}</h3>
+                        <div class="movie-meta">
+                            <span class="badge badge-lang">${movie.category}</span>
+                            <span class="movie-year">${movie.year}</span>
+                        </div>
+                        <a href="${movie.downloadUrl}" class="download-btn" download>Download Movie</a>
+                    </div>
+                `;
+                movieGrid.appendChild(movieCard);
+            });
+        }
+    </script>
+</body>
+</html>
